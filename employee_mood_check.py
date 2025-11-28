@@ -31,7 +31,7 @@ def employee_mood_check(contact_number: str, user_message: str):
     print(f"[MoodCheck] Loaded {len(session_messages)} session messages")
     # feedback_extraction = get_employee_mood_check_extraction(session_messages[-1:])
     # print(f"[MoodCheck] Feedback extraction: {feedback_extraction}")
-    print(f"[MoodCheck] Latest session messages: {session_messages[-3:]}")  # show recent entries
+    print(f"[MoodCheck] Latest session messages: {session_messages[-2:]}")  # show recent entries
     mood_check_response_message = mood_check_response(user_message)
     send_whatsapp_message(contact_number, mood_check_response_message.message_to_user)
     print(f"[MoodCheck] Sent response: {mood_check_response_message.message_to_user}")
