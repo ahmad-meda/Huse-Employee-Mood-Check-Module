@@ -7,6 +7,56 @@ from sqlalchemy import func
 class EmployeeMoodService:
     
     @staticmethod
+    def add_comment_to_mood_record(db: Session, mood_record: MoodCheck, comment: str) -> MoodCheck:
+        """Add or update a comment to a mood check record."""
+        try:
+            if mood_record is None:
+                raise ValueError("Mood record cannot be None")
+            
+            if comment is None or comment.strip() == "":
+                raise ValueError("Comment cannot be empty")
+            
+            # Update the comment field
+            mood_record.comments = comment.strip()
+            
+            # Commit the changes
+            db.commit()
+            db.refresh(mood_record)
+            
+            return mood_record
+        except Exception as e:
+            db.rollback()
+            raise Exception(f"Error adding comment to mood record: {str(e)}")
+    
+    @staticmethod
+    def add_comment_to_mood_record_by_id(db: Session, mood_id: int, comment: str) -> MoodCheck:
+        """Add or update a comment to a mood check record by ID."""
+        try:
+            if mood_id is None:
+                raise ValueError("Mood ID cannot be None")
+            
+            if comment is None or comment.strip() == "":
+                raise ValueError("Comment cannot be empty")
+            
+            # Get the mood record
+            mood_record = db.query(MoodCheck).filter(MoodCheck.id == mood_id).first()
+            
+            if mood_record is None:
+                raise ValueError(f"No mood record found with ID: {mood_id}")
+            
+            # Update the comment field
+            mood_record.comments = comment.strip()
+            
+            # Commit the changes
+            db.commit()
+            db.refresh(mood_record)
+            
+            return mood_record
+        except Exception as e:
+            db.rollback()
+            raise Exception(f"Error adding comment to mood record: {str(e)}")
+    
+    @staticmethod
     def get_mood_check_statistics(db: Session, company_ids: Optional[List[int]] = None, group_id: Optional[int] = None, start_date: Optional[date] = None, end_date: Optional[date] = None) -> Dict[str, Any]:
         """Get mood statistics with raw values for dashboards and visualization."""
         try:
