@@ -3,10 +3,11 @@ from proxies.proxy import EmployeeProxy
 from proxies.employee_session_proxy import EmployeeSessionProxy
 from proxies.employee_mood_session_proxy import EmployeeMoodSessionProxy
 from proxies.employee_message_proxy import EmployeeMessageHistoryProxy
+from proxies.employee_mood_proxy import EmployeeMoodProxy
 from utils.agents import get_employee_mood_check_extraction, mood_check_response
 
 
-def employee_mood_check(contact_number: str, user_message: str):
+def employee_mood_check(contact_number: str, user_message: str, mood_record_id: int = None):
     print(f"[MoodCheck] Processing message from {contact_number}")
     employee_record = EmployeeProxy.get_employee_record(contact_number)
     print(f"[MoodCheck] Employee record found: {bool(employee_record)}")
@@ -27,11 +28,22 @@ def employee_mood_check(contact_number: str, user_message: str):
     print(f"[MoodCheck] Recording user message: {user_message}")
     EmployeeMessageHistoryProxy.save_message(contact_number, "user", user_message)
     EmployeeSessionProxy.add_message(contact_number, {"role": "user", "content": user_message})
+    if mood_record_id is not None:
+        if not isinstance(mood_record_id, int) or mood_record_id <= 0:
+            print(f"[MoodCheck] Invalid mood_record_id supplied: {mood_record_id}")
+        elif user_message is None or user_message.strip() == "":
+            print("[MoodCheck] Skipping comment update because user message is empty")
+        else:
+            try:
+                EmployeeMoodProxy.add_comment_to_mood_record_by_id(mood_record_id, user_message.strip())
+                print(f"[MoodCheck] Added comment to mood record {mood_record_id}")
+            except Exception as e:
+                print(f"[MoodCheck] Failed to add comment to mood record {mood_record_id}: {e}")
     session_messages = EmployeeSessionProxy.get_messages(contact_number)
     print(f"[MoodCheck] Loaded {len(session_messages)} session messages")
     # feedback_extraction = get_employee_mood_check_extraction(session_messages[-1:])
     # print(f"[MoodCheck] Feedback extraction: {feedback_extraction}")
-    print(f"[MoodCheck] Latest session messages: {session_messages[-2:]}")  # show recent entries
+    print(f"[MoodCheck] Latest session messages: {session_messages[-3:]}")  # show recent entries
     mood_check_response_message = mood_check_response(user_message)
     send_whatsapp_message(contact_number, mood_check_response_message.message_to_user)
     print(f"[MoodCheck] Sent response: {mood_check_response_message.message_to_user}")
@@ -45,4 +57,4 @@ def employee_mood_check(contact_number: str, user_message: str):
 while True:
     user_message = input("\nUser: ")
     print("[MoodCheck] --- New Interaction ---")
-    employee_mood_check(contact_number="+971509784398", user_message=user_message)
+    employee_mood_check(contact_number="+971509784398", user_message=user_message, mood_record_id=53)
